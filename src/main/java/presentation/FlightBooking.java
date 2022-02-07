@@ -1,5 +1,4 @@
 package presentation;
-//prueba1
 
 import javax.swing.JPanel;
 import javax.swing.JFrame;
@@ -75,7 +74,6 @@ public class FlightBooking extends JFrame {
 	
 	private ConcreteFlight selectedConcreteFlight;
 	
-	private int prueba;
 
 	/**
 	 * Launch the application.
@@ -226,13 +224,24 @@ public class FlightBooking extends JFrame {
 		flightList.setModel(flightInfo);
 		flightList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
 			public void valueChanged(javax.swing.event.ListSelectionEvent e) {
+				int num=0;
 				if (e.getValueIsAdjusting()) return; // El evento se dispara dos veces: antes de cambiar el valor y una vez cambiado
 													 // Interesa s�lo actuar una vez cambiado
 				if (!flightList.isSelectionEmpty()){ // A este m�todo se le llama tambi�n cuando se hace un clear del JList, 
 													 // por lo que podr�a estar la selecci�n vac�a y dar un error
 					selectedConcreteFlight = (ConcreteFlight) flightList.getSelectedValue();
 					bookFlight.setEnabled(true);
-					bookFlight.setText("Book this flight: "+selectedConcreteFlight);  // TODO Auto-generated Event stub valueChanged()
+					if (bussinesTicket.isSelected())num=selectedConcreteFlight.getBusinessNumber();					
+					else if (firstTicket.isSelected())num=selectedConcreteFlight.getFirstNumber();
+					else if (touristTicket.isSelected())num=selectedConcreteFlight.getTouristNumber();				
+					if (num==0){
+						bookFlight.setEnabled(false);
+						bookFlight.setText("No available tickets for that fare");
+					}
+					else {
+						bookFlight.setText("Book this flight: "+selectedConcreteFlight);  // TODO Auto-generated Event stub valueChanged()
+					}
+					
 				}
 			}
 		});
@@ -246,20 +255,19 @@ public class FlightBooking extends JFrame {
 		bookFlight.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int num=0;
-				boolean error=false;
 				if (bussinesTicket.isSelected()) { 
 					num=selectedConcreteFlight.getBusinessNumber();
-					if (num>0) selectedConcreteFlight.setBusinessNumber(num-1); else error=true; 
+					if (num>0) selectedConcreteFlight.setBusinessNumber(num-1);
 				}
 				else if (firstTicket.isSelected()) {
 					num=selectedConcreteFlight.getFirstNumber();
-					if (num>0) selectedConcreteFlight.setFirstNumber(num-1); else error=true;
+					if (num>0) selectedConcreteFlight.setFirstNumber(num-1);
 				}
 				else if (touristTicket.isSelected()) {
 					num=selectedConcreteFlight.getTouristNumber();
-					if (num>0) selectedConcreteFlight.setTouristNumber(num-1); else error=true;
+					if (num>0) selectedConcreteFlight.setTouristNumber(num-1);
 				}
-				if (error) bookFlight.setText("Error: There were no seats available!");
+				if (num==1) bookFlight.setText("You have bought the last ticket");
 				else bookFlight.setText("Booked. #seat left: "+(num-1));
 				bookFlight.setEnabled(false);
 			}
