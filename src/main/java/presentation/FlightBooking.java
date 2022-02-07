@@ -75,7 +75,7 @@ public class FlightBooking extends JFrame {
 	
 	private ConcreteFlight selectedConcreteFlight;
 	
-	
+	private int prueba;
 
 	/**
 	 * Launch the application.
