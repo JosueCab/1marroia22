@@ -57,19 +57,17 @@ public class FlightBooking extends JFrame {
 	private ButtonGroup fareButtonGroup = new ButtonGroup();  
 	
 	private JButton lookforFlights = null;
-	private DefaultListModel<ConcreteFlight> flightInfo = new DefaultListModel<ConcreteFlight>();
+	private DefaultComboBoxModel<ConcreteFlight> flightInfo = new DefaultComboBoxModel<ConcreteFlight>();
 
 	
-	private JList<ConcreteFlight> flightList = null;
+	private JComboBox<ConcreteFlight> flightComboBox = null;
 	private JButton bookFlight = null;
 	
-	
-
 	
 	private Collection<ConcreteFlight> concreteFlightCollection;
 	
 	private FlightManager businessLogic;  //  @jve:decl-index=0:
-	private JScrollPane flightListScrollPane = new JScrollPane();;
+	private JScrollPane flightComboBoxScrollPane = new JScrollPane();;
 	
 	
 	private ConcreteFlight selectedConcreteFlight;
@@ -104,6 +102,12 @@ public class FlightBooking extends JFrame {
 
 	     return calendar.getTime();
 	}
+	
+	//Look if a string is numeric
+	public static boolean isNumeric(String str)
+	  {
+	    return str.matches("[0-9]{4}$");  
+	  }
 	/**
 	 * Create the frame
 	 * 
@@ -199,18 +203,24 @@ public class FlightBooking extends JFrame {
 		lookforFlights.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				bookFlight.setEnabled(true);
-				flightInfo.clear();
+				flightInfo.removeAllElements();
 				bookFlight.setText("");
 				
-				java.util.Date date =newDate(Integer.parseInt(year.getText()),months.getSelectedIndex(),Integer.parseInt(day.getText()));
-				 
-				concreteFlightCollection=businessLogic.getConcreteFlights(departCity.getText(),arrivalCity.getText(),date);
-				for (ConcreteFlight f : concreteFlightCollection) { 
-					System.out.println(f.toString());
-					flightInfo.addElement(f); 
+				if(isNumeric(year.getText())) {
+					
+					java.util.Date date =newDate(Integer.parseInt(year.getText()),months.getSelectedIndex(),Integer.parseInt(day.getText()));
+					 
+					concreteFlightCollection=businessLogic.getConcreteFlights(departCity.getText(),arrivalCity.getText(),date);
+					for (ConcreteFlight f : concreteFlightCollection) { 
+						System.out.println(f.toString());
+						flightInfo.addElement(f); 
+					}
+					if (concreteFlightCollection.isEmpty()) searchResult.setText("No flights in that city in that date");
+					else searchResult.setText("Choose an available flight in this list:");
 				}
-				if (concreteFlightCollection.isEmpty()) searchResult.setText("No flights in that city in that date");
-				else searchResult.setText("Choose an available flight in this list:");
+				else {
+					System.out.println("The year format is not correct");
+				}
 			}
 		});
 		lookforFlights.setBounds(86, 118, 261, 40);
@@ -220,16 +230,17 @@ public class FlightBooking extends JFrame {
 		jLabelResult.setBounds(109, 180, 243, 16);
 		contentPane.add(jLabelResult);
 		
-		flightList = new JList<ConcreteFlight>();
-		flightList.setModel(flightInfo);
-		flightList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-			public void valueChanged(javax.swing.event.ListSelectionEvent e) {
+		flightComboBox = new JComboBox<ConcreteFlight>();
+		flightComboBox.setModel(flightInfo);
+		
+		flightComboBox.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
 				int num=0;
-				if (e.getValueIsAdjusting()) return; // El evento se dispara dos veces: antes de cambiar el valor y una vez cambiado
-													 // Interesa s�lo actuar una vez cambiado
-				if (!flightList.isSelectionEmpty()){ // A este m�todo se le llama tambi�n cuando se hace un clear del JList, 
+				//if (e.getValueIsAdjusting()) return; // El evento se dispara dos veces: antes de cambiar el valor y una vez cambiado
+//													 // Interesa s�lo actuar una vez cambiado
+				if (flightComboBox.getItemCount() != 0){ // A este m�todo se le llama tambi�n cuando se hace un clear del JList, 
 													 // por lo que podr�a estar la selecci�n vac�a y dar un error
-					selectedConcreteFlight = (ConcreteFlight) flightList.getSelectedValue();
+					selectedConcreteFlight = (ConcreteFlight) flightComboBox.getSelectedItem();
 					bookFlight.setEnabled(true);
 					if (bussinesTicket.isSelected())num=selectedConcreteFlight.getBusinessNumber();					
 					else if (firstTicket.isSelected())num=selectedConcreteFlight.getFirstNumber();
@@ -240,36 +251,41 @@ public class FlightBooking extends JFrame {
 					}
 					else {
 						bookFlight.setText("Book this flight: "+selectedConcreteFlight);  // TODO Auto-generated Event stub valueChanged()
-					}
-					
+					}			
 				}
 			}
 		});
 		
-		flightListScrollPane.setBounds(new Rectangle(64, 199, 336, 71));
-		flightListScrollPane.setViewportView(flightList);
-		contentPane.add(flightListScrollPane);
+		
+		flightComboBoxScrollPane.setBounds(new Rectangle(64, 199, 336, 40));
+		flightComboBoxScrollPane.setViewportView(flightComboBox);
+		contentPane.add(flightComboBoxScrollPane);
 		
 		
 		bookFlight = new JButton("");
 		bookFlight.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				int num=0;
-				if (bussinesTicket.isSelected()) { 
-					num=selectedConcreteFlight.getBusinessNumber();
-					if (num>0) selectedConcreteFlight.setBusinessNumber(num-1);
+				if (flightComboBox.getItemCount() != 0){ 
+					int num=0;
+					if (bussinesTicket.isSelected()) { 
+						num=selectedConcreteFlight.getBusinessNumber();
+						if (num>0) selectedConcreteFlight.setBusinessNumber(num-1);
+					}
+					else if (firstTicket.isSelected()) {
+						num=selectedConcreteFlight.getFirstNumber();
+						if (num>0) selectedConcreteFlight.setFirstNumber(num-1);
+					}
+					else if (touristTicket.isSelected()) {
+						num=selectedConcreteFlight.getTouristNumber();
+						if (num>0) selectedConcreteFlight.setTouristNumber(num-1);
+					}
+					if (num==1) bookFlight.setText("You have bought the last ticket");
+					else bookFlight.setText("Booked. #seat left: "+(num-1));
+					bookFlight.setEnabled(false);
 				}
-				else if (firstTicket.isSelected()) {
-					num=selectedConcreteFlight.getFirstNumber();
-					if (num>0) selectedConcreteFlight.setFirstNumber(num-1);
+				else {
+					System.out.println("There are no selected flights");
 				}
-				else if (touristTicket.isSelected()) {
-					num=selectedConcreteFlight.getTouristNumber();
-					if (num>0) selectedConcreteFlight.setTouristNumber(num-1);
-				}
-				if (num==1) bookFlight.setText("You have bought the last ticket");
-				else bookFlight.setText("Booked. #seat left: "+(num-1));
-				bookFlight.setEnabled(false);
 			}
 		});
 		bookFlight.setBounds(21, 282, 399, 40);
@@ -286,5 +302,6 @@ public class FlightBooking extends JFrame {
 		
 		searchResult.setBounds(86, 170, 314, 16);
 		contentPane.add(searchResult);
+		
 	}
 }  //  @jve:decl-index=0:visual-constraint="18,9"
