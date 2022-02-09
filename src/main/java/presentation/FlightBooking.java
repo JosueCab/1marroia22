@@ -8,6 +8,8 @@ import java.awt.EventQueue;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -233,11 +235,9 @@ public class FlightBooking extends JFrame {
 		flightComboBox = new JComboBox<ConcreteFlight>();
 		flightComboBox.setModel(flightInfo);
 		
-		flightComboBox.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+		flightComboBox.addItemListener(new ItemListener() {
+			public void  itemStateChanged(ItemEvent e) {
 				int num=0;
-				//if (e.getValueIsAdjusting()) return; // El evento se dispara dos veces: antes de cambiar el valor y una vez cambiado
-//													 // Interesa s�lo actuar una vez cambiado
 				if (flightComboBox.getItemCount() != 0){ // A este m�todo se le llama tambi�n cuando se hace un clear del JList, 
 													 // por lo que podr�a estar la selecci�n vac�a y dar un error
 					selectedConcreteFlight = (ConcreteFlight) flightComboBox.getSelectedItem();
