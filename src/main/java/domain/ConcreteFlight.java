@@ -4,14 +4,22 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import javax.persistence.CascadeType;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.OneToOne;
+
 public class ConcreteFlight {
 	
-String concreteFlightCode;
+@Id
+public String concreteFlightCode;
 Date date;
 int businessNumber;
 int touristNumber;
 int firstNumber;
 String time;
+
+@OneToOne(fetch=FetchType.EAGER, cascade = CascadeType.PERSIST)
 Flight flight;
 
 public ConcreteFlight(String concreteFlightCode, Date date, int businessNumber,int firstNumber, int touristNumber, String time, Flight flight) {
